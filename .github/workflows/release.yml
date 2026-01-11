@@ -1,0 +1,86 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Read version from build.gradle.kts
+        id: version
+        run: |
+          VERSION=$(grep -E '^\s*version\s*=\s*".*"' build.gradle.kts | head -n1 | sed -E 's/.*version\s*=\s*"([^"]+)".*/\1/')
+          if [ -z "$VERSION" ]; then
+            echo 'Could not read version from build.gradle.kts. Expected: version = "1.2.3"'
+            exit 1
+          fi
+
+          PRERELEASE=false
+          if echo "$VERSION" | grep -qi "SNAPSHOT"; then
+            PRERELEASE=true
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
+
+      - name: Skip if tag already exists
+        id: tagcheck
+        run: |
+          git fetch --tags
+          TAG="${{ steps.version.outputs.version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag already exists: $TAG"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Stop (tag exists)
+        if: steps.tagcheck.outputs.skip == 'true'
+        run: echo "Release skipped because tag already exists."
+
+      - name: Pick release jar
+        if: steps.tagcheck.outputs.skip != 'true'
+        id: jar
+        run: |
+          ls -la build/libs || true
+
+          JAR=$(ls -1 build/libs/*-all.jar 2>/dev/null | head -n1 || true)
+
+          if [ -z "$JAR" ]; then
+            echo "No jar found in build/libs"
+            exit 1
+          fi
+
+          echo "jar=$JAR" >> $GITHUB_OUTPUT
+      - name: Create GitHub Release
+        if: steps.tagcheck.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          files: ${{ steps.jar.outputs.jar }}

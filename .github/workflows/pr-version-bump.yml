@@ -1,0 +1,47 @@
+name: PR - Version bump check
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read PR version from build.gradle.kts
+        id: prver
+        run: |
+          PR_VERSION=$(grep -E '^\s*version\s*=\s*".*"' build.gradle.kts | head -n1 | sed -E 's/.*version\s*=\s*"([^"]+)".*/\1/')
+          if [ -z "$PR_VERSION" ]; then
+            echo 'Could not read version from build.gradle.kts. Expected: version = "1.2.3"'
+            exit 1
+          fi
+          echo "pr_version=$PR_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Read main version from build.gradle.kts
+        id: mainver
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+
+          MAIN_VERSION=$(git show origin/main:build.gradle.kts | grep -E '^\s*version\s*=\s*".*"' | head -n1 | sed -E 's/.*version\s*=\s*"([^"]+)".*/\1/')
+          if [ -z "$MAIN_VERSION" ]; then
+            echo 'Could not read main version from build.gradle.kts. Expected: version = "1.2.3"'
+            exit 1
+          fi
+          echo "main_version=$MAIN_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Fail if version not bumped
+        run: |
+          echo "main: ${{ steps.mainver.outputs.main_version }}"
+          echo "pr:   ${{ steps.prver.outputs.pr_version }}"
+
+          if [ "${{ steps.prver.outputs.pr_version }}" = "${{ steps.mainver.outputs.main_version }}" ]; then
+            echo "Version was not bumped. Update version in build.gradle.kts."
+            exit 1
+          fi
