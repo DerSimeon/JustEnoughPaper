@@ -82,5 +82,4 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
-          prerelease: ${{ steps.version.outputs.prerelease }}
           files: ${{ steps.jar.outputs.jar }}
