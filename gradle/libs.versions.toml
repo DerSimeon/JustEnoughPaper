@@ -1,0 +1,18 @@
+[versions]
+kotlin = "2.3.0"
+shadow = "9.3.1"
+runtask = "3.0.2"
+resourcefactory = "1.3.1"
+gremlin = "0.0.9"
+userdev = "2.0.0-beta.19"
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+runtask = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
+resourcefactory = { id = "xyz.jpenilla.resource-factory-paper-convention", version.ref = "resourcefactory" }
+gremlin = { id = "xyz.jpenilla.gremlin-gradle", version.ref = "gremlin" }
+userdev = { id = "io.papermc.paperweight.userdev", version.ref = "userdev" }
+
+[libraries]
+stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }

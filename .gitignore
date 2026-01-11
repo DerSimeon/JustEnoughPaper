@@ -1,0 +1,13 @@
+### GRADLE ###
+.gradle
+/build
+
+### IDEA ###
+.idea/
+*.iml
+
+### KOTLIN ###
+.kotlin
+
+### MISC ###
+run/
