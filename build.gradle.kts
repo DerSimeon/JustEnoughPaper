@@ -15,10 +15,12 @@ description = "Fake the server-side implementation of JustEnoughItems for Paper"
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
+    maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("26.1.2.build.20-alpha")
     runtimeDownload(libs.stdlib)
 }
 
@@ -48,7 +50,7 @@ paperPluginYaml {
     name = "JustEnoughPaper"
     this.version = project.version.toString()
     this.description = project.description.toString()
-    apiVersion = "1.21"
+    apiVersion = "26.1.2"
     main = "lol.simeon.jep.JustEnoughPaper"
     author = "DerSimeon"
     loader = "lol.simeon.jep.boot.JepPluginLoader"
