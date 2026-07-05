@@ -1,4 +1,6 @@
 import io.papermc.paperweight.userdev.ReobfArtifactConfiguration
+import proguard.gradle.ProGuardTask
+import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -7,6 +9,7 @@ plugins {
     alias(libs.plugins.runtask)
     alias(libs.plugins.resourcefactory)
     alias(libs.plugins.resourcefactory.bukkit)
+    alias(libs.plugins.proguard)
 }
 
 group = "lol.simeon"
@@ -20,12 +23,20 @@ repositories {
 dependencies {
     paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
     implementation(libs.stdlib)
+
+    testImplementation(kotlin("test"))
+    testImplementation(libs.testify.junit)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
+}
+
+val java21Launcher = javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(21))
 }
 
 configure<SourceSetContainer> {
@@ -42,6 +53,57 @@ paperweight.reobfArtifactConfiguration = ReobfArtifactConfiguration.REOBF_PRODUC
 
 tasks.reobfJar {
     outputJar = layout.buildDirectory.file("libs/${project.name}-${project.version}-reobf.jar")
+}
+
+tasks.register<ProGuardTask>("obfuscateJar") {
+    group = "build"
+    description = "Obfuscates the plugin jar using ProGuard. The resulting jar is saved as build/libs/${project.name}-${project.version}-obf.jar."
+    dependsOn(tasks.shadowJar)
+
+    injars(tasks.shadowJar.get().archiveFile)
+    outjars(layout.buildDirectory.file("libs/${project.name}-${project.version}-obf.jar"))
+
+    libraryjars(
+        mapOf("jarfilter" to "!**.jar", "filter" to "!module-info.class"),
+        java21Launcher.map { it.metadata.installationPath.file("jmods/java.base.jmod").asFile }
+    )
+    val proguardLibraryJars = configurations.compileClasspath.get().filter { file ->
+        file.extension != "jmod" && "${File.separator}jmods${File.separator}" !in file.path
+    }
+    libraryjars(proguardLibraryJars)
+
+    configuration("proguard.pro")
+}
+
+tasks.matching { it.name == "proguard" }.configureEach {
+    enabled = false
+}
+
+tasks.withType<ProGuardTask>().configureEach {
+    notCompatibleWithConfigurationCache("The ProGuard Gradle task captures project state.")
+}
+
+tasks.build {
+    dependsOn("obfuscateJar")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    dependsOn(tasks.named<ProGuardTask>("obfuscateJar"))
+    systemProperty("testify.realTests", providers.gradleProperty("testify.realTests").orElse("false").get())
+}
+
+tasks.withType<RunServer> {
+    if (name == "runServer") {
+        dependsOn("obfuscateJar")
+        minecraftVersion("1.21.11")
+        val buildPath = project.layout.buildDirectory.file("libs/${project.name}-${project.version}-obf.jar").get().asFile.absolutePath
+        pluginJars(buildPath)
+    }
+}
+
+runPaper {
+    disablePluginJarDetection()
 }
 
 paperPluginYaml {

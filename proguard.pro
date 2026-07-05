@@ -1,0 +1,11 @@
+-keepnames class lol.simeon.jer.JustEnoughRecipes
+-keep class kotlin.Metadata { *; }
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+
+-dontshrink
+-dontoptimize
+-overloadaggressively
+-useuniqueclassmembernames
+-adaptclassstrings
+-dontwarn
+-printmapping build/proguard-mapping.txt
