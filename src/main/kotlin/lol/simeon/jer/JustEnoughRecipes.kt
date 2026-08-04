@@ -8,6 +8,7 @@ class JustEnoughRecipes : JavaPlugin() {
 
     override fun onEnable() {
         Bukkit.getMessenger().registerOutgoingPluginChannel(this, "neoforge:recipe_content")
+        Bukkit.getMessenger().registerOutgoingPluginChannel(this, "fabric:recipe_sync")
         ConnectionHandler(this)
     }
 }
