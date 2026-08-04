@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 
 @TestifyServer(
     version = "1.21.11",
-    plugins = ["build/libs/JustEnoughRecipes-1.2-SNAPSHOT-obf.jar"],
+    plugins = ["build/libs/JustEnoughRecipes-1.2-SNAPSHOT-all.jar"],
     helperPlugin = true,
     runOnce = true,
     maxRam = "2G",
