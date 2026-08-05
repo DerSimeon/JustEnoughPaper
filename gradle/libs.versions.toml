@@ -13,7 +13,6 @@ kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 runtask = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
 resourcefactory = { id = "xyz.jpenilla.resource-factory-paper-convention", version.ref = "resourcefactory" }
-resourcefactory-bukkit = { id = "xyz.jpenilla.resource-factory-bukkit-convention", version.ref = "resourcefactory" }
 gremlin = { id = "xyz.jpenilla.gremlin-gradle", version.ref = "gremlin" }
 userdev = { id = "io.papermc.paperweight.userdev", version.ref = "userdev" }
 proguard = { id = "com.scalified.plugins.gradle.proguard", version.ref = "proguard" }

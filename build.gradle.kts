@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.userdev)
     alias(libs.plugins.runtask)
     alias(libs.plugins.resourcefactory)
-    alias(libs.plugins.resourcefactory.bukkit)
     alias(libs.plugins.proguard)
 }
 
@@ -107,15 +106,6 @@ runPaper {
 }
 
 paperPluginYaml {
-    name = "JustEnoughRecipes"
-    this.version = project.version.toString()
-    this.description = project.description.toString()
-    apiVersion = "1.21"
-    main = "lol.simeon.jer.JustEnoughRecipes"
-    author = "DerSimeon"
-}
-
-bukkitPluginYaml {
     name = "JustEnoughRecipes"
     this.version = project.version.toString()
     this.description = project.description.toString()
