@@ -18,7 +18,7 @@ repositories {
 
 dependencies {
     paperweight.paperDevBundle("26.1.2.build.74-stable")
-    implementation(libs.stdlib)
+    compileOnly(libs.stdlib)
 }
 
 java {
@@ -30,6 +30,14 @@ java {
 configure<SourceSetContainer> {
     named("main") {
         java.srcDir("src/main/kotlin")
+    }
+}
+
+tasks.processResources {
+    val props = mapOf("kotlinVersion" to libs.versions.kotlin.get())
+    inputs.properties(props)
+    filesMatching("jer-versions.properties") {
+        expand(props)
     }
 }
 
@@ -55,5 +63,6 @@ paperPluginYaml {
     this.description = project.description.toString()
     apiVersion = "26.1"
     main = "lol.simeon.jer.JustEnoughRecipes"
+    loader = "lol.simeon.jer.JustEnoughRecipesLoader"
     author = "DerSimeon"
 }
