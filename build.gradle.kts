@@ -1,4 +1,3 @@
-import io.papermc.paperweight.userdev.ReobfArtifactConfiguration
 import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
@@ -18,13 +17,13 @@ repositories {
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("26.1.2.build.74-stable")
     implementation(libs.stdlib)
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     }
 }
 
@@ -35,20 +34,14 @@ configure<SourceSetContainer> {
 }
 
 tasks.assemble {
-    dependsOn(tasks.reobfJar)
-}
-
-paperweight.reobfArtifactConfiguration = ReobfArtifactConfiguration.REOBF_PRODUCTION
-
-tasks.reobfJar {
-    outputJar = layout.buildDirectory.file("libs/${project.name}-${project.version}-reobf.jar")
+    dependsOn(tasks.shadowJar)
 }
 
 tasks.withType<RunServer> {
     if (name == "runServer") {
-        dependsOn(tasks.reobfJar)
-        minecraftVersion("1.21.11")
-        pluginJars(tasks.reobfJar.flatMap { it.outputJar })
+        dependsOn(tasks.shadowJar)
+        minecraftVersion("26.1.2")
+        pluginJars(tasks.shadowJar.flatMap { it.archiveFile })
     }
 }
 
@@ -60,7 +53,7 @@ paperPluginYaml {
     name = "JustEnoughRecipes"
     this.version = project.version.toString()
     this.description = project.description.toString()
-    apiVersion = "1.21"
+    apiVersion = "26.1"
     main = "lol.simeon.jer.JustEnoughRecipes"
     author = "DerSimeon"
 }
