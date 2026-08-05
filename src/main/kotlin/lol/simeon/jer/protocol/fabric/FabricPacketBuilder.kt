@@ -1,33 +1,35 @@
 package lol.simeon.jer.protocol.fabric
 
 import io.netty.buffer.Unpooled
+import io.netty.channel.ChannelHandlerContext
 import lol.simeon.jer.protocol.SharedHelper
 import lol.simeon.jer.protocol.fabric.packet.RecipeSyncPayload
+import lol.simeon.jer.protocol.fabric.recipe.FabricRecipeEntryBuilder
 import net.minecraft.network.RegistryFriendlyByteBuf
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
 import net.minecraft.resources.Identifier
-import org.bukkit.craftbukkit.entity.CraftPlayer
-import org.bukkit.entity.Player
+import net.minecraft.server.MinecraftServer
 
-object FabricPacketBuilder: SharedHelper() {
+object FabricPacketBuilder : SharedHelper() {
 
-    fun sendRecipeSyncAsDiscarded(player: Player, payload: RecipeSyncPayload) {
-        val serverPlayer = (player as CraftPlayer).handle
-        val connection = scanForNetworkManager(serverPlayer.connection)
+    fun buildAndWriteToContext(ctx: ChannelHandlerContext) {
+        val entries = FabricRecipeEntryBuilder.buildRecipeSyncEntries()
+        val payload = RecipeSyncPayload(entries)
 
-        val registryAccess = serverPlayer.registryAccess()
+        val server = MinecraftServer.getServer()
+        val registryAccess = server.registryAccess()
+
         val nettyBuf = Unpooled.buffer()
         val registryFriendlyByteBuf = RegistryFriendlyByteBuf(nettyBuf, registryAccess)
-
-        // encode your payload into bytes
         RecipeSyncPayload.CODEC.encode(registryFriendlyByteBuf, payload)
 
         val bytes = ByteArray(nettyBuf.readableBytes())
         nettyBuf.readBytes(bytes)
+        nettyBuf.release()
 
         val id = Identifier.fromNamespaceAndPath("fabric", "recipe_sync")
         val discarded = constructDiscardedPayload(id, bytes)
-
-        connection.send(ClientboundCustomPayloadPacket(discarded))
+        // Must precede ClientboundUpdateRecipesPacket so JEI initializes with recipes already synced.
+        ctx.write(ClientboundCustomPayloadPacket(discarded), ctx.voidPromise())
     }
 }
