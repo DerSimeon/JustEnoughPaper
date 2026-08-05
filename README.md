@@ -20,3 +20,12 @@ In simple terms:
 This allows mods like Just Enough Items to continue working on Paper servers
 after Minecraft 1.21.2, without switching to a Fabric server or installing extra
 dependencies.
+
+## Building
+
+```sh
+./gradlew build
+```
+
+The distributable plugin is produced at
+`build/libs/JustEnoughRecipes-<version>-all.jar`.
